@@ -31,6 +31,7 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 .fac-name{font-family:'Prompt',sans-serif;font-size:13px;font-weight:600;color:var(--white);position:relative;z-index:1;line-height:1.4;}
 .fac-eng{font-size:11px;color:var(--muted);position:relative;z-index:1;margin-top:2px;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+.fac-progress{position:absolute;top:7px;right:7px;background:var(--gold);color:var(--dark);font-family:'Prompt',sans-serif;font-size:9px;font-weight:800;border-radius:20px;padding:2px 7px;z-index:2;}
 #screenGame{align-items:center;justify-content:flex-start;padding:28px 20px 48px}
 .game-container{width:100%;max-width:560px;display:flex;flex-direction:column;gap:18px;}
 .game-topbar{display:flex;align-items:center;justify-content:space-between;}
@@ -343,18 +344,33 @@ const F=[
 
 // ── STATE ──
 let CF=null,QP=[],CI=0,RS=[],ANS=false;
+// Save state per faculty: { qp, ci, rs }
+const SAVED={};
 
 // ── BUILD HOME ──
 function buildHome(){
   const g=document.getElementById('facultyGrid');g.innerHTML='';
   F.forEach((f,i)=>{
     const c=document.createElement('div');c.className='fac-card';c.style.animationDelay=(i*.03)+'s';
-    c.innerHTML=`<span class="fac-emoji">${f.emoji}</span><div class="fac-name">${f.name}</div><div class="fac-eng">${f.eng}</div>`;
+    const saved=SAVED[f.id];
+    const badge=saved?`<div class="fac-progress">${saved.ci}/5</div>`:'';
+    c.innerHTML=`<span class="fac-emoji">${f.emoji}</span><div class="fac-name">${f.name}</div><div class="fac-eng">${f.eng}</div>${badge}`;
     c.onclick=()=>startFac(f);g.appendChild(c);
   });
 }
 function startFac(f){
-  CF=f;QP=[...f.qs].sort(()=>Math.random()-.5).slice(0,5);CI=0;RS=[];ANS=false;
+  CF=f;ANS=false;
+  if(SAVED[f.id]){
+    // Resume saved progress
+    QP=SAVED[f.id].qp;
+    CI=SAVED[f.id].ci;
+    RS=SAVED[f.id].rs;
+  } else {
+    // Fresh start
+    QP=[...f.qs].sort(()=>Math.random()-.5).slice(0,5);
+    CI=0;RS=[];
+    SAVED[f.id]={qp:QP,ci:CI,rs:[...RS]};
+  }
   document.getElementById('topFacEmoji').textContent=f.emoji;
   document.getElementById('topFacName').textContent=f.name;
   buildDots();showS('screenGame');renderQ();
@@ -388,6 +404,7 @@ function pick(btn,ch,q){
   if(ANS)return;ANS=true;
   document.querySelectorAll('.choice').forEach(b=>{b.disabled=true;b.classList.add('dim');});
   RS.push(ch.ok);
+  if(CF&&SAVED[CF.id]) SAVED[CF.id].rs=[...RS];
   if(ch.ok){btn.classList.remove('dim');btn.classList.add('correct');showFB(true,q.e);}
   else{
     btn.classList.remove('dim');btn.classList.add('wrong');
@@ -424,10 +441,13 @@ function hideFB(){
 function nextQ(){
   hideFB();
   CI++;
+  if(CF&&SAVED[CF.id]) SAVED[CF.id].ci=CI;
   if(CI>=5) showRes();
   else renderQ();
 }
 function showRes(){
+  // Clear saved state — game complete
+  if(CF) delete SAVED[CF.id];
   const f=CF,sc=RS.filter(Boolean).length;
   document.getElementById('resFacEmoji').textContent=f.emoji;
   document.getElementById('resScore').textContent=sc;
@@ -441,8 +461,11 @@ function showRes(){
   document.getElementById('resMsg').innerHTML=m;
   showS('screenResult');if(sc>=3)confetti();
 }
-function playAgainSameFac(){startFac(CF);}
-function goHome(){showS('screenHome');}
+function playAgainSameFac(){
+  if(CF) delete SAVED[CF.id];
+  startFac(CF);
+}
+function goHome(){showS('screenHome');buildHome();}
 function showS(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
 function confetti(){
   const w=document.getElementById('confettiWrap');w.innerHTML='';
