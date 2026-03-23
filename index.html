@@ -62,13 +62,13 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 .choice.wrong{background:rgba(255,23,68,0.13)!important;border-color:var(--fail)!important;animation:wrongShake 0.5s ease;}
 .choice.dim{opacity:0.3;transform:none!important;}
 @keyframes correctPop{0%{transform:scale(1);}40%{transform:scale(1.08);}70%{transform:scale(0.96);}100%{transform:scale(1);}}
-.tips-bar{width:100%;max-width:480px;margin-top:6px;border-radius:16px;background:linear-gradient(135deg,rgba(244,196,48,0.07),rgba(233,30,140,0.06));border:1.5px solid rgba(244,196,48,0.25);padding:14px 16px;display:flex;gap:12px;align-items:flex-start;animation:fadeUp 0.4s both 0.15s;}
-.tips-icon{font-size:22px;flex-shrink:0;margin-top:2px;}
-.tips-body{flex:1;}
-.tips-label{font-family:'Prompt',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:var(--gold);margin-bottom:5px;}
-.tips-text{font-family:'Prompt',sans-serif;font-size:12.5px;font-weight:500;color:rgba(255,255,255,0.82);line-height:1.7;}
+
+
+
+
+
 .tips-text strong{color:var(--gold2);}
-.tips-brand{display:inline-flex;align-items:center;gap:5px;margin-top:7px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:3px 10px 3px 7px;font-family:'Prompt',sans-serif;font-size:10px;font-weight:600;color:rgba(255,255,255,0.45);}
+
 @keyframes wrongShake{0%,100%{transform:translateX(0);}15%{transform:translateX(-10px);}35%{transform:translateX(9px);}55%{transform:translateX(-7px);}75%{transform:translateX(5px);}}
 .feedback-overlay{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;transition:opacity 0.2s;}
 .feedback-overlay.show{opacity:1;}
@@ -84,6 +84,12 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 .feedback-overlay.ok .fb-title{color:var(--success);}
 .feedback-overlay.fail .fb-title{color:var(--fail);}
 .fb-detail{font-size:12.5px;color:rgba(255,255,255,0.72);line-height:1.6;}
+.fb-tips{margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.12);display:flex;gap:8px;align-items:flex-start;text-align:left;}
+.fb-tips-icon{font-size:16px;flex-shrink:0;}
+.fb-tips-body{flex:1;}
+.fb-tips-label{font-family:'Prompt',sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-bottom:3px;}
+.fb-tips-text{font-family:'Prompt',sans-serif;font-size:11px;color:rgba(255,255,255,0.7);line-height:1.6;}
+.fb-tips-text strong{color:var(--gold2);}
 #screenResult{align-items:center;justify-content:center;padding:24px 14px;}
 .result-card{background:var(--card-bg);border:1.5px solid rgba(244,196,48,0.22);border-radius:26px;padding:36px 24px;max-width:420px;width:100%;text-align:center;backdrop-filter:blur(16px);box-shadow:0 0 80px rgba(244,196,48,0.07),0 24px 60px rgba(0,0,0,0.5);animation:popBounce 0.5s cubic-bezier(.34,1.56,.64,1);}
 .res-fac{font-size:54px;display:block;margin-bottom:6px;}
@@ -114,6 +120,7 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
     <span class="fb-big" id="fbBig">✅</span>
     <div class="fb-title" id="fbTitle">ถูกต้อง!</div>
     <div class="fb-detail" id="fbDetail"></div>
+    <div class="fb-tips" id="fbTips" style="display:none"></div>
   </div>
 </div>
 <div class="confetti-wrap" id="confettiWrap"></div>
@@ -143,13 +150,7 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
     </div>
     <div class="choices-stack" id="choicesStack"></div>
   </div>
-  <div class="tips-bar" id="tipsBar">
-    <div class="tips-icon">💡</div>
-    <div class="tips-body">
-      <div class="tips-label">✨ CRC Career Tips</div>
-      <div class="tips-text" id="tipsText"></div>
-      <div class="tips-brand"><span>🛍️</span> Central Retail Corporation</div>
-    </div>
+</div>
   </div>
 </div>
 
@@ -354,8 +355,6 @@ function startFac(f){
   CF=f;QP=[...f.qs].sort(()=>Math.random()-.5).slice(0,5);CI=0;RS=[];ANS=false;
   document.getElementById('topFacEmoji').textContent=f.emoji;
   document.getElementById('topFacName').textContent=f.name;
-  const tip=CRC_TIPS[f.id]||'Central Retail เปิดรับสมัครพนักงานหลากหลายตำแหน่ง สนใจดูได้ที่ careers.centralretail.com';
-  document.getElementById('tipsText').innerHTML=tip;
   buildDots();showS('screenGame');renderQ();
 }
 function buildDots(){
@@ -403,6 +402,15 @@ function showFB(ok,d){
   document.getElementById('fbBig').textContent=ok?'✅':'❌';
   document.getElementById('fbTitle').textContent=ok?'ถูกต้อง! 🎉':'เกือบแล้ว!';
   document.getElementById('fbDetail').textContent=d;
+  // Show CRC Tips
+  const tipsEl=document.getElementById('fbTips');
+  const tip=CF?CRC_TIPS[CF.id]:null;
+  if(tip){
+    tipsEl.innerHTML=`<div class="fb-tips-icon">💡</div><div class="fb-tips-body"><div class="fb-tips-label">✨ CRC Career Tips</div><div class="fb-tips-text">${tip}</div></div>`;
+    tipsEl.style.display='flex';
+  } else {
+    tipsEl.style.display='none';
+  }
   o.className='feedback-overlay show '+(ok?'ok':'fail');
 }
 function hideFB(){document.getElementById('fbOverlay').className='feedback-overlay';}
