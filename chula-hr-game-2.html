@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CU Career Quest</title>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&family=Noto+Sans+Thai:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--pink:#E91E8C;--pink2:#FF4DB8;--maroon:#6B0F2B;--gold:#F4C430;--gold2:#FFE066;--dark:#0D0710;--card-bg:rgba(255,255,255,0.04);--card-border:rgba(255,255,255,0.09);--white:#FEFCFF;--muted:rgba(255,255,255,0.45);--success:#00E676;--fail:#FF1744;--radius:20px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans Thai',sans-serif;background:var(--dark);min-height:100vh;overflow-x:hidden;color:var(--white);}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(233,30,140,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(233,30,140,0.04) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0;}
+body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 10% 0%,rgba(233,30,140,0.15) 0%,transparent 70%),radial-gradient(ellipse 60% 50% at 90% 100%,rgba(107,15,43,0.3) 0%,transparent 70%);pointer-events:none;z-index:0;}
+.screen{display:none;position:relative;z-index:1;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;}
+#screenHome{padding:0 0 48px;align-items:stretch;}
+.home-hero{text-align:center;padding:32px 24px 20px;}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,var(--maroon),rgba(233,30,140,0.6));border:1px solid rgba(233,30,140,0.5);border-radius:30px;padding:6px 16px;font-family:'Prompt',sans-serif;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.85);margin-bottom:14px;}
+.hero-title{font-family:'Prompt',sans-serif;font-size:clamp(26px,5.5vw,38px);font-weight:800;line-height:1.15;margin-bottom:6px;}
+.hero-title .cu{background:linear-gradient(135deg,var(--gold),var(--pink2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-sub{font-size:13px;color:var(--muted);line-height:1.7;}
+.section-label{font-family:'Prompt',sans-serif;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:0 16px;margin-bottom:10px;}
+.faculty-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;padding:0 12px;}
+.fac-card{background:var(--card-bg);border:1.5px solid var(--card-border);border-radius:14px;padding:14px 10px;cursor:pointer;transition:all 0.22s cubic-bezier(.34,1.56,.64,1);text-align:center;position:relative;overflow:hidden;animation:fadeUp 0.35s both;}
+.fac-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--pink),var(--maroon));opacity:0;transition:opacity 0.2s;}
+.fac-card:hover{border-color:rgba(233,30,140,0.6);transform:translateY(-4px) scale(1.03);box-shadow:0 12px 28px rgba(233,30,140,0.25);}
+.fac-card:hover::before{opacity:0.08;}
+.fac-card:active{transform:translateY(-1px) scale(0.98);}
+.fac-emoji{font-size:32px;display:block;margin-bottom:6px;position:relative;z-index:1;transition:transform 0.2s;}
+.fac-card:hover .fac-emoji{transform:scale(1.18) rotate(-5deg);}
+.fac-name{font-family:'Prompt',sans-serif;font-size:11px;font-weight:600;color:var(--white);position:relative;z-index:1;line-height:1.4;}
+.fac-eng{font-size:9px;color:var(--muted);position:relative;z-index:1;margin-top:2px;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+#screenGame{align-items:center;justify-content:flex-start;padding:20px 14px 40px;}
+.game-container{width:100%;max-width:480px;display:flex;flex-direction:column;gap:14px;}
+.game-topbar{display:flex;align-items:center;justify-content:space-between;}
+.btn-back{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.07);border:1px solid var(--card-border);border-radius:10px;padding:8px 14px;font-family:'Prompt',sans-serif;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;transition:all 0.2s;}
+.btn-back:hover{background:rgba(255,255,255,0.12);color:var(--white);}
+.topbar-fac{display:flex;align-items:center;gap:6px;font-family:'Prompt',sans-serif;font-size:13px;font-weight:600;color:var(--white);}
+.dots-row{display:flex;gap:6px;justify-content:center;}
+.dot{width:28px;height:7px;border-radius:4px;background:rgba(255,255,255,0.12);transition:all 0.35s;}
+.dot.done-ok{background:var(--success);}
+.dot.done-fail{background:var(--fail);}
+.dot.current{background:var(--gold);box-shadow:0 0 10px rgba(244,196,48,0.6);}
+.q-type-pill{display:inline-flex;align-items:center;gap:6px;border-radius:30px;padding:5px 14px;font-family:'Prompt',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;align-self:center;}
+.q-type-pill.career{background:rgba(244,196,48,0.12);border:1px solid rgba(244,196,48,0.4);color:var(--gold2);}
+.q-type-pill.emoji{background:rgba(233,30,140,0.12);border:1px solid rgba(233,30,140,0.4);color:var(--pink2);}
+.q-visual-box{background:var(--card-bg);border:1.5px solid var(--card-border);border-radius:var(--radius);padding:24px 20px 18px;text-align:center;position:relative;overflow:hidden;}
+.q-visual-box::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(233,30,140,0.08),transparent 70%);}
+.q-visual{font-size:66px;display:block;margin-bottom:10px;animation:popBounce 0.5s cubic-bezier(.34,1.56,.64,1);position:relative;z-index:1;}
+@keyframes popBounce{0%{transform:scale(0.3) rotate(-15deg);opacity:0;}100%{transform:scale(1) rotate(0);opacity:1;}}
+.q-text{font-family:'Prompt',sans-serif;font-size:clamp(15px,3.8vw,19px);font-weight:700;line-height:1.45;color:var(--white);position:relative;z-index:1;}
+.choices-stack{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.choice{background:var(--card-bg);border:2px solid var(--card-border);border-radius:18px;padding:22px 16px;cursor:pointer;transition:all 0.2s;text-align:center;position:relative;overflow:hidden;}
+.choice::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(233,30,140,0.15),transparent);opacity:0;transition:opacity 0.2s;}
+.choice:hover:not(:disabled)::after{opacity:1;}
+.choice:hover:not(:disabled){border-color:rgba(233,30,140,0.5);transform:translateY(-4px);box-shadow:0 10px 28px rgba(233,30,140,0.25);}
+.choice-ico{font-size:36px;display:block;margin-bottom:8px;}
+.choice-label{font-family:'Prompt',sans-serif;font-size:14px;font-weight:700;color:var(--white);display:block;margin-bottom:3px;}
+.choice-sub{font-size:11px;color:var(--muted);display:block;}
+.choice.correct{background:rgba(0,230,118,0.13)!important;border-color:var(--success)!important;animation:correctPop 0.5s ease;}
+.choice.wrong{background:rgba(255,23,68,0.13)!important;border-color:var(--fail)!important;animation:wrongShake 0.5s ease;}
+.choice.dim{opacity:0.3;transform:none!important;}
+@keyframes correctPop{0%{transform:scale(1);}40%{transform:scale(1.08);}70%{transform:scale(0.96);}100%{transform:scale(1);}}
+.tips-bar{width:100%;max-width:480px;margin-top:6px;border-radius:16px;background:linear-gradient(135deg,rgba(244,196,48,0.07),rgba(233,30,140,0.06));border:1.5px solid rgba(244,196,48,0.25);padding:14px 16px;display:flex;gap:12px;align-items:flex-start;animation:fadeUp 0.4s both 0.15s;}
+.tips-icon{font-size:22px;flex-shrink:0;margin-top:2px;}
+.tips-body{flex:1;}
+.tips-label{font-family:'Prompt',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:var(--gold);margin-bottom:5px;}
+.tips-text{font-family:'Prompt',sans-serif;font-size:12.5px;font-weight:500;color:rgba(255,255,255,0.82);line-height:1.7;}
+.tips-text strong{color:var(--gold2);}
+.tips-brand{display:inline-flex;align-items:center;gap:5px;margin-top:7px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:3px 10px 3px 7px;font-family:'Prompt',sans-serif;font-size:10px;font-weight:600;color:rgba(255,255,255,0.45);}
+@keyframes wrongShake{0%,100%{transform:translateX(0);}15%{transform:translateX(-10px);}35%{transform:translateX(9px);}55%{transform:translateX(-7px);}75%{transform:translateX(5px);}}
+.feedback-overlay{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;transition:opacity 0.2s;}
+.feedback-overlay.show{opacity:1;}
+.feedback-bg{position:absolute;inset:0;transition:background 0.25s;}
+.feedback-overlay.ok .feedback-bg{background:rgba(0,230,118,0.1);}
+.feedback-overlay.fail .feedback-bg{background:rgba(255,23,68,0.1);}
+.feedback-badge{position:relative;z-index:1;border-radius:22px;padding:22px 26px;text-align:center;max-width:340px;width:90%;transform:scale(0.6);transition:transform 0.35s cubic-bezier(.34,1.56,.64,1);backdrop-filter:blur(24px);}
+.feedback-overlay.show .feedback-badge{transform:scale(1);}
+.feedback-overlay.ok .feedback-badge{background:rgba(0,20,10,0.88);border:2px solid var(--success);box-shadow:0 0 60px rgba(0,230,118,0.4),0 20px 60px rgba(0,0,0,0.6);}
+.feedback-overlay.fail .feedback-badge{background:rgba(20,0,5,0.88);border:2px solid var(--fail);box-shadow:0 0 60px rgba(255,23,68,0.4),0 20px 60px rgba(0,0,0,0.6);}
+.fb-big{font-size:56px;display:block;margin-bottom:4px;animation:popBounce 0.4s cubic-bezier(.34,1.56,.64,1);}
+.fb-title{font-family:'Prompt',sans-serif;font-size:20px;font-weight:800;margin-bottom:5px;}
+.feedback-overlay.ok .fb-title{color:var(--success);}
+.feedback-overlay.fail .fb-title{color:var(--fail);}
+.fb-detail{font-size:12.5px;color:rgba(255,255,255,0.72);line-height:1.6;}
+#screenResult{align-items:center;justify-content:center;padding:24px 14px;}
+.result-card{background:var(--card-bg);border:1.5px solid rgba(244,196,48,0.22);border-radius:26px;padding:36px 24px;max-width:420px;width:100%;text-align:center;backdrop-filter:blur(16px);box-shadow:0 0 80px rgba(244,196,48,0.07),0 24px 60px rgba(0,0,0,0.5);animation:popBounce 0.5s cubic-bezier(.34,1.56,.64,1);}
+.res-fac{font-size:54px;display:block;margin-bottom:6px;}
+.res-title{font-family:'Prompt',sans-serif;font-size:21px;font-weight:800;margin-bottom:4px;}
+.res-score{font-family:'Prompt',sans-serif;font-size:56px;font-weight:800;background:linear-gradient(135deg,var(--gold),var(--pink2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;margin:6px 0 3px;}
+.res-out{font-size:13px;color:var(--muted);margin-bottom:16px;}
+.score-dots{display:flex;gap:7px;justify-content:center;margin-bottom:18px;}
+.sdot{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;}
+.sdot.ok{background:rgba(0,230,118,0.14);border:2px solid var(--success);color:var(--success);}
+.sdot.fail{background:rgba(255,23,68,0.14);border:2px solid var(--fail);color:var(--fail);}
+.res-msg{background:rgba(255,255,255,0.04);border:1px solid var(--card-border);border-radius:13px;padding:13px 16px;font-size:13px;color:rgba(255,255,255,0.65);line-height:1.7;margin-bottom:22px;}
+.res-msg strong{color:var(--gold2);}
+.res-btns{display:flex;gap:9px;}
+.btn-again{flex:1;padding:14px;border-radius:13px;border:2px solid rgba(233,30,140,0.5);background:transparent;font-family:'Prompt',sans-serif;font-size:14px;font-weight:700;color:var(--pink2);cursor:pointer;transition:all 0.2s;}
+.btn-again:hover{background:rgba(233,30,140,0.1);}
+.btn-home-res{flex:1;padding:14px;border-radius:13px;border:none;background:linear-gradient(135deg,var(--gold),#C89600);font-family:'Prompt',sans-serif;font-size:14px;font-weight:800;color:var(--dark);cursor:pointer;transition:all 0.2s;}
+.btn-home-res:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(244,196,48,0.35);}
+.confetti-wrap{position:fixed;inset:0;pointer-events:none;z-index:200;}
+.cp{position:absolute;top:-16px;animation:fall linear forwards;border-radius:2px;}
+@keyframes fall{to{transform:translateY(110vh) rotate(900deg);opacity:0;}}
+@media(max-width:380px){.faculty-grid{grid-template-columns:repeat(3,1fr);}.fac-emoji{font-size:26px;}.fac-name{font-size:10px;}}
+</style>
+</head>
+<body>
+<div class="feedback-overlay" id="fbOverlay">
+  <div class="feedback-bg"></div>
+  <div class="feedback-badge">
+    <span class="fb-big" id="fbBig">✅</span>
+    <div class="fb-title" id="fbTitle">ถูกต้อง!</div>
+    <div class="fb-detail" id="fbDetail"></div>
+  </div>
+</div>
+<div class="confetti-wrap" id="confettiWrap"></div>
+
+<div class="screen active" id="screenHome">
+  <div class="home-hero">
+    <div class="hero-badge">🌸 จุฬาลงกรณ์มหาวิทยาลัย · 20 คณะ</div>
+    <h1 class="hero-title"><span class="cu">CU Career</span><br>Quest 🎓</h1>
+    <p class="hero-sub">เลือกคณะที่สนใจ แล้วทดสอบว่า<br>คุณรู้จักอาชีพในสายนั้นแค่ไหน!</p>
+  </div>
+  <div class="section-label">— เลือกคณะที่สนใจ —</div>
+  <div class="faculty-grid" id="facultyGrid"></div>
+</div>
+
+<div class="screen" id="screenGame">
+  <div class="game-container">
+    <div class="game-topbar">
+      <button class="btn-back" onclick="goHome()">← กลับ</button>
+      <div class="topbar-fac"><span id="topFacEmoji"></span><span id="topFacName"></span></div>
+      <div style="width:72px;"></div>
+    </div>
+    <div class="dots-row" id="dotsRow"></div>
+    <div style="display:flex;justify-content:center;"><div class="q-type-pill" id="qtypePill"></div></div>
+    <div class="q-visual-box">
+      <span class="q-visual" id="qVisual"></span>
+      <div class="q-text" id="qText"></div>
+    </div>
+    <div class="choices-stack" id="choicesStack"></div>
+  </div>
+  <div class="tips-bar" id="tipsBar">
+    <div class="tips-icon">💡</div>
+    <div class="tips-body">
+      <div class="tips-label">✨ CRC Career Tips</div>
+      <div class="tips-text" id="tipsText"></div>
+      <div class="tips-brand"><span>🛍️</span> Central Retail Corporation</div>
+    </div>
+  </div>
+</div>
+
+<div class="screen" id="screenResult">
+  <div class="result-card">
+    <span class="res-fac" id="resFacEmoji"></span>
+    <div class="res-title" id="resTitle"></div>
+    <div class="res-score" id="resScore">0</div>
+    <div class="res-out">จาก 5 ข้อ</div>
+    <div class="score-dots" id="resDots"></div>
+    <div class="res-msg" id="resMsg"></div>
+    <div class="res-btns">
+      <button class="btn-again" onclick="playAgainSameFac()">🔄 เล่นซ้ำ</button>
+      <button class="btn-home-res" onclick="goHome()">🏠 เลือกคณะใหม่</button>
+    </div>
+  </div>
+</div>
+
+<script>
+
+const CRC_TIPS = {
+  med: "Central Retail เปิดรับ <strong>แพทย์ที่ปรึกษา / Medical Advisor</strong> ดูแลด้านสุขภาพและ Wellness ภายใต้ธุรกิจ <strong>Tops Care</strong> และงาน Occupational Health สำหรับพนักงานกว่า 70,000 คนทั่วประเทศ",
+  dent: "Central Retail เปิดรับ <strong>ที่ปรึกษาผลิตภัณฑ์สุขภาพช่องปาก</strong> ใน <strong>Tops Care</strong> คัดเลือกและแนะนำสินค้า Oral Care รวมถึงตำแหน่ง Health & Beauty Specialist ในทุกสาขา",
+  pharm: "Central Retail เปิดรับ <strong>เภสัชกร</strong> ประจำสาขา <strong>Tops Care</strong> ทั่วประเทศ ดูแลการจ่ายยา ให้คำปรึกษาสุขภาพ และพัฒนา Private Label ผลิตภัณฑ์สุขภาพใน Health & Wellness Division",
+  nurse: "Central Retail รับ <strong>พยาบาลวิชาชีพ</strong> ดูแลงาน Occupational Health & Safety ให้พนักงานกว่า 70,000 คน รวมถึงบทบาท Health Advisor ใน <strong>Tops Care</strong> สาขาต่างๆ ทั่วประเทศ",
+  vet: "Central Retail เปิดรับ <strong>สัตวแพทย์ & Pet Care Specialist</strong> สำหรับธุรกิจ <strong>PET 'N ME</strong> ให้คำปรึกษาด้านสุขภาพสัตว์เลี้ยง คัดเลือก Pet Food และดูแล Pet Services ในสาขา",
+  eng: "Central Retail รับ <strong>Software Engineer, Data Engineer, AI/ML Engineer</strong> ทีม CRC Tech พัฒนา Platform E-Commerce, Mobile App และ Data Pipeline ให้ <strong>Tops Online</strong> และ Central Online",
+  arch: "Central Retail เปิดรับ <strong>Store Designer & Visual Merchandiser</strong> ออกแบบประสบการณ์ภายในสาขา <strong>Central, Robinson, Tops</strong> และ <strong>Robinson Lifestyle</strong> กว่า 3,800 สาขา ทั่ว 3 ประเทศ",
+  finearts: "Central Retail รับ <strong>Graphic Designer, UX/UI Designer, Creative Director</strong> ทีม Creative Studio สร้างสรรค์ Visual Identity และ Campaign ให้แบรนด์ <strong>Central, Tops, Robinson, Supersports</strong>",
+  sci: "Central Retail เปิดรับ <strong>Food Scientist & R&D Specialist</strong> พัฒนาผลิตภัณฑ์ <strong>Tops Own Brand</strong> กว่า 3,000 รายการ รวมถึงงานตรวจสอบคุณภาพและความปลอดภัยของสินค้าในห้องแล็บมาตรฐาน",
+  sports: "Central Retail รับ <strong>Sports Specialist, Buyer & Category Manager</strong> ดูแลธุรกิจ <strong>Supersports</strong> No.1 Multi-Brand Sports Retailer ในไทย ทั้ง Retail, Exclusive Distribution และ Licensing",
+  psych: "Central Retail เปิดรับ <strong>HR Business Partner & Talent Development Specialist</strong> ออกแบบ Training Program และ Learning Culture ผ่าน <strong>CRC Academy</strong> ให้พนักงานกว่า 70,000 คน",
+  allied: "Central Retail รับ <strong>Health & Beauty Consultant</strong> ประจำ <strong>Tops Care</strong> ให้คำแนะนำผลิตภัณฑ์ Health, Beauty และ Wellness รวมถึงงาน Nutritionist ดูแลผลิตภัณฑ์ <strong>Tops Vita</strong>",
+  law: "Central Retail เปิดรับ <strong>Corporate Lawyer & Legal Counsel</strong> ดูแลสัญญาเช่าพื้นที่, พาร์ทเนอร์ชิป, M&A และ PDPA Compliance สำหรับธุรกิจค้าปลีกใน <strong>Robinson Lifestyle, Tops Plaza</strong> และแบรนด์ทั้งหมด",
+  commerce: "Central Retail เปิดรับ <strong>Finance, Accounting, Business Analyst</strong> วิเคราะห์งบการเงินและ ROI ให้ทุก Business Unit ได้แก่ <strong>Tops, Central, Robinson, Power Buy, Supersports, OfficeMate</strong>",
+  econ: "Central Retail รับ <strong>Consumer Insights & Market Research Analyst</strong> วิเคราะห์พฤติกรรมลูกค้ากว่า <strong>20 ล้านคน</strong> ใน The 1 Loyalty Program เพื่อวางกลยุทธ์ราคาและสินค้าในทุกแบรนด์",
+  arts: "Central Retail เปิดรับ <strong>Copywriter, Content Creator & Translator</strong> สร้างสรรค์คอนเทนต์ให้แบรนด์ <strong>Central, Tops, Robinson, Supersports, B2S</strong> ทั้งภาษาไทยและภาษาต่างประเทศ",
+  edu: "Central Retail รับ <strong>Learning & Development Specialist</strong> ออกแบบ Training, Onboarding และ Leadership Program ผ่าน <strong>CRC Academy</strong> พัฒนาศักยภาพพนักงานกว่า 70,000 คน",
+  poli: "Central Retail เปิดรับ <strong>Government Relations & Corporate Affairs Manager</strong> ดูแลนโยบาย ESG, ความสัมพันธ์ภาครัฐ และโครงการ CSR เพื่อสนับสนุนการขยายธุรกิจใน <strong>Robinson Lifestyle</strong> และ <strong>Tops Plaza</strong>",
+  comm: "Central Retail รับ <strong>PR Manager, Social Media Manager & Brand Storyteller</strong> ดูแล Communication Strategy บนทุก Platform ให้แบรนด์ <strong>Central, Tops, Robinson, Supersports</strong> และ <strong>B2S</strong>",
+  demog: "Central Retail เปิดรับ <strong>Consumer Insights & CRM Analyst</strong> วิเคราะห์ข้อมูลสมาชิก <strong>The 1</strong> กว่า 20 ล้านคน วางแผน Personalization และกลยุทธ์ Loyalty ให้ทุก Business Unit",
+};
+
+const F=[
+  {id:"med",emoji:"⚕️",name:"แพทยศาสตร์",eng:"Medicine",qs:[
+    {t:"career",v:"🏥",q:"แพทย์ทั่วไปเรียนจบแล้วต้องการเชี่ยวชาญเฉพาะด้าน ต้องเรียนต่ออะไร?",c:[{i:"🎓",l:"แพทย์เฉพาะทาง (Residency)",s:"ฝึกต่อ 3-5 ปี",ok:true},{i:"🏋️",l:"ออกกำลังกายเพิ่มเติม",s:"Physical training only",ok:false}],e:"แพทย์ที่อยากเชี่ยวชาญเฉพาะด้านต้องเรียน Residency เพิ่มอีก 3-5 ปี เช่น ศัลยกรรม กุมารเวชฯ หัวใจ"},
+    {t:"career",v:"🩺",q:"แพทย์เชี่ยวชาญโรคหัวใจและหลอดเลือดเรียกว่าอะไร?",c:[{i:"❤️",l:"Cardiologist",s:"อายุรแพทย์โรคหัวใจ",ok:true},{i:"🦴",l:"Orthopedic Surgeon",s:"ศัลยแพทย์กระดูก",ok:false}],e:"Cardiologist ดูแลโรคหัวใจ ความดัน หลอดเลือด เป็นหนึ่งในสาขาที่ขาดแคลนและเงินเดือนสูงที่สุด"},
+    {t:"career",v:"🌍",q:"แพทย์ที่ทำงานวิจัยหาทางรักษาโรคใหม่แทนที่จะรักษาผู้ป่วยโดยตรงเรียกว่าอะไร?",c:[{i:"🔬",l:"Medical Researcher",s:"นักวิจัยการแพทย์",ok:true},{i:"🎙️",l:"Medical Host",s:"พิธีกรสุขภาพ",ok:false}],e:"Medical Researcher ทำงานในสถาบันวิจัย มหาวิทยาลัย หรือบริษัทยา ค้นหาวัคซีนและวิธีรักษาใหม่ๆ"},
+    {t:"emoji",v:"🩻💊🧬",q:"3 Emoji นี้สื่อถึงสาขาแพทย์ใด?",c:[{i:"🔬",l:"Precision Medicine",s:"การแพทย์แม่นยำ",ok:true},{i:"🎭",l:"Medical Drama",s:"ละครแพทย์",ok:false}],e:"🩻💊🧬 = Precision Medicine ใช้ข้อมูลพันธุกรรมออกแบบการรักษาเฉพาะบุคคล เป็นอนาคตของการแพทย์!"},
+    {t:"career",v:"💉",q:"แพทย์เชี่ยวชาญดูแลผู้ป่วยมะเร็งโดยเฉพาะเรียกว่าอะไร?",c:[{i:"🎗️",l:"Oncologist",s:"แพทย์มะเร็งวิทยา",ok:true},{i:"🦷",l:"Orthodontist",s:"ทันตแพทย์จัดฟัน",ok:false}],e:"Oncologist รักษามะเร็งด้วย Chemo, Radiation และ Immunotherapy เป็นสาขาที่ขาดแคลนมากในไทย!"},
+  ]},
+  {id:"dent",emoji:"🦷",name:"ทันตแพทยศาสตร์",eng:"Dentistry",qs:[
+    {t:"career",v:"🦷",q:"ทันตแพทย์ที่เชี่ยวชาญจัดฟันและแก้ไขการสบฟันผิดปกติเรียกว่าอะไร?",c:[{i:"📐",l:"Orthodontist",s:"ทันตแพทย์จัดฟัน",ok:true},{i:"🔬",l:"Periodontist",s:"ผู้เชี่ยวชาญโรคเหงือก",ok:false}],e:"Orthodontist เชี่ยวชาญจัดฟัน ใส่เครื่องมือและ Clear Aligner ปัจจุบันตลาด Aligner เติบโตมหาศาล"},
+    {t:"career",v:"😬",q:"ทันตแพทย์ที่ทำฟันขาว ทำ Veneer และเสริมความงามฟันเรียกว่าอะไร?",c:[{i:"✨",l:"Cosmetic Dentist",s:"ทันตแพทย์เสริมสวย",ok:true},{i:"🏋️",l:"Sports Dentist",s:"ทันตแพทย์กีฬา",ok:false}],e:"Cosmetic Dentist ทำ Veneer ฟันขาว Bleaching รายได้สูงมาก เพราะลูกค้าพร้อมจ่ายเพื่อความมั่นใจ"},
+    {t:"career",v:"💼",q:"ทันตแพทย์ที่ออกจากคลินิกมาทำงานด้านผลิตภัณฑ์ในบริษัทมักทำหน้าที่ใด?",c:[{i:"🏷️",l:"Dental Product Specialist",s:"ผู้เชี่ยวชาญผลิตภัณฑ์",ok:true},{i:"🚀",l:"Space Engineer",s:"วิศวกรอวกาศ",ok:false}],e:"Dental Product Specialist ใช้ความรู้คลินิกช่วยบริษัทพัฒนาและแนะนำผลิตภัณฑ์ทันตกรรมให้ตรงความต้องการ"},
+    {t:"emoji",v:"🦷✨🔬",q:"3 Emoji นี้สื่อถึงสาขาทันตกรรมใด?",c:[{i:"💎",l:"Cosmetic Dentistry",s:"ทันตกรรมเสริมสวย",ok:true},{i:"🌊",l:"Marine Biology",s:"ชีววิทยาทะเล",ok:false}],e:"🦷✨🔬 = Cosmetic Dentistry ทำ Veneer ฟันขาว รากเทียม เป็นสาขาที่รายได้สูงมากในยุคนี้!"},
+    {t:"career",v:"🔧",q:"ทันตแพทย์ที่รักษารากฟันเมื่อฟันผุลึกถึงโพรงประสาทเรียกว่าอะไร?",c:[{i:"🔩",l:"Endodontist",s:"ผู้เชี่ยวชาญรักษารากฟัน",ok:true},{i:"📐",l:"Orthodontist",s:"ทันตแพทย์จัดฟัน",ok:false}],e:"Endodontist ทำ Root Canal Treatment ช่วยให้ฟันแท้อยู่ได้นานขึ้น แทนที่จะต้องถอนทิ้ง"},
+  ]},
+  {id:"pharm",emoji:"💊",name:"เภสัชศาสตร์",eng:"Pharmacy",qs:[
+    {t:"career",v:"💊",q:"เภสัชกรที่ทำงานในโรงพยาบาลให้คำปรึกษาการใช้ยาแก่แพทย์โดยตรงเรียกว่าอะไร?",c:[{i:"🏥",l:"Clinical Pharmacist",s:"เภสัชกรคลินิก",ok:true},{i:"🏭",l:"Industrial Pharmacist",s:"เภสัชกรโรงงาน",ok:false}],e:"Clinical Pharmacist อยู่หน้า Ward ร่วมกับแพทย์ ตรวจสอบ Drug Interaction และปรับขนาดยาให้เหมาะสม"},
+    {t:"career",v:"🌿",q:"เภสัชกรที่พัฒนาครีม เซรั่ม และผลิตภัณฑ์ดูแลผิวเชิงวิทยาศาสตร์เรียกว่าอะไร?",c:[{i:"💄",l:"Cosmetic Pharmacist",s:"เภสัชกรเครื่องสำอาง",ok:true},{i:"🏋️",l:"Sports Pharmacist",s:"เภสัชกรกีฬา",ok:false}],e:"Cosmetic Pharmacist พัฒนาสูตรครีม เซรั่ม SPF โดยอิงวิทยาศาสตร์ ทำงานในแบรนด์เครื่องสำอางชั้นนำ"},
+    {t:"career",v:"🏭",q:"เภสัชกรในโรงงานยาดูแลด้านใดเป็นหลัก?",c:[{i:"✅",l:"ควบคุมคุณภาพ GMP",s:"Quality Control & GMP",ok:true},{i:"🎨",l:"ออกแบบโลโก้ยา",s:"Drug logo design",ok:false}],e:"เภสัชกรโรงงานดูแล GMP (Good Manufacturing Practice) ตรวจทุกล็อตก่อนออกสู่ตลาด ปลอดภัย 100%"},
+    {t:"emoji",v:"💊🧴🔬",q:"3 Emoji นี้สื่อถึงงานเภสัชกรสาขาใด?",c:[{i:"🌱",l:"Natural Product Development",s:"พัฒนาผลิตภัณฑ์จากธรรมชาติ",ok:true},{i:"🚂",l:"Train Operations",s:"งานรถไฟ",ok:false}],e:"💊🧴🔬 = การพัฒนาผลิตภัณฑ์จากสมุนไพรและธรรมชาติ เป็นสาขาเติบโตเร็วมากในตลาด Wellness!"},
+    {t:"career",v:"🧴",q:"เภสัชกรที่ให้คำปรึกษายาและสุขภาพแก่ประชาชนในร้านยาเรียกว่าอะไร?",c:[{i:"🏪",l:"Community Pharmacist",s:"เภสัชกรชุมชน",ok:true},{i:"🔭",l:"Astro Pharmacist",s:"เภสัชกรดาราศาสตร์",ok:false}],e:"Community Pharmacist ทำงานในร้านยา ให้คำแนะนำยาและสุขภาพแก่ลูกค้า เป็นด่านหน้าสุขภาพของชุมชน"},
+  ]},
+  {id:"nurse",emoji:"👩‍⚕️",name:"พยาบาลศาสตร์",eng:"Nursing Science",qs:[
+    {t:"career",v:"❤️",q:"พยาบาลนอกจากโรงพยาบาล ยังทำงานในที่ไหนได้อีกบ้าง?",c:[{i:"🏢",l:"บริษัทเอกชน โรงเรียน และราชการ",s:"Corporate, School, Government",ok:true},{i:"🎪",l:"งานกลางแจ้งเท่านั้น",s:"Outdoor events only",ok:false}],e:"พยาบาลทำงานได้หลากหลาย ทั้งโรงพยาบาล คลินิก โรงเรียน บริษัทเอกชน (OHN) ราชการ และองค์กรระหว่างประเทศ"},
+    {t:"career",v:"🌍",q:"พยาบาลที่ทำงานในพื้นที่ภัยพิบัติหรือสงครามกับองค์กร MSF เรียกว่าอะไร?",c:[{i:"✈️",l:"Humanitarian Nurse",s:"พยาบาลมนุษยธรรม",ok:true},{i:"🏊",l:"Aquatic Nurse",s:"พยาบาลในน้ำ",ok:false}],e:"Humanitarian Nurse ทำงานกับ MSF (หมอไร้พรมแดน) และ ICRC ในพื้นที่วิกฤต เป็นบทบาทที่ต้องอาศัยความกล้าหาญ"},
+    {t:"career",v:"📱",q:"พยาบาลที่ดูแลผู้ป่วยโรคเรื้อรังผ่านระบบออนไลน์และแอปสุขภาพเรียกว่าอะไร?",c:[{i:"📲",l:"Telehealth Nurse",s:"พยาบาลออนไลน์",ok:true},{i:"🎮",l:"Game Nurse",s:"พยาบาลในเกม",ok:false}],e:"Telehealth Nurse ติดตามผู้ป่วยเบาหวาน ความดันจากระยะไกล ลดการเดินทาง เป็นสายที่โตมากหลัง COVID"},
+    {t:"emoji",v:"💉🩺📋",q:"3 Emoji นี้สื่อถึงบทบาทพยาบาลด้านใด?",c:[{i:"🏃",l:"Clinical Nursing",s:"การพยาบาลในคลินิก",ok:true},{i:"🎵",l:"Music Therapy",s:"ดนตรีบำบัด",ok:false}],e:"💉🩺📋 = Clinical Nurse ดูแลผู้ป่วยใน Ward ให้ยา บันทึกอาการ และประสานงานกับแพทย์ตลอด Shift"},
+    {t:"career",v:"🧓",q:"พยาบาลที่เชี่ยวชาญดูแลผู้สูงอายุระยะยาวเรียกว่าอะไร?",c:[{i:"👴",l:"Gerontological Nurse",s:"พยาบาลผู้สูงอายุ",ok:true},{i:"🏊",l:"Swim Instructor",s:"ครูสอนว่ายน้ำ",ok:false}],e:"Gerontological Nurse เป็นสาขาขาดแคลนที่สุดในไทย เพราะประชากรสูงอายุเพิ่มขึ้นปีละกว่า 1 ล้านคน"},
+  ]},
+  {id:"vet",emoji:"🐾",name:"สัตวแพทยศาสตร์",eng:"Veterinary Science",qs:[
+    {t:"career",v:"🐶",q:"สัตวแพทย์ที่ดูแลสุนัขและแมวในคลินิกทั่วไปเรียกว่าอะไร?",c:[{i:"🏥",l:"Small Animal Veterinarian",s:"สัตวแพทย์สัตว์เลี้ยงขนาดเล็ก",ok:true},{i:"🌊",l:"Aquatic Vet",s:"สัตวแพทย์สัตว์น้ำ",ok:false}],e:"Small Animal Vet เป็นสายที่คนทำงานกันมากที่สุด ตลาดสัตว์เลี้ยงในไทยโตปีละ 10%"},
+    {t:"career",v:"🦁",q:"สัตวแพทย์ที่ดูแลสัตว์ป่าในอุทยานและสวนสัตว์เรียกว่าอะไร?",c:[{i:"🌳",l:"Wildlife Veterinarian",s:"สัตวแพทย์สัตว์ป่า",ok:true},{i:"📊",l:"Data Analyst",s:"นักวิเคราะห์ข้อมูล",ok:false}],e:"Wildlife Vet ดูแลช้าง เสือ กระทิง สัตว์ใกล้สูญพันธุ์ ทำงานกับ DNP กรมอุทยาน และองค์กร WWF"},
+    {t:"career",v:"🌍",q:"สัตวแพทย์ที่ป้องกันโรคระบาดจากสัตว์สู่คน (Zoonosis) เช่น ไข้หวัดนก ทำงานกับองค์กรใด?",c:[{i:"🌐",l:"WHO / FAO / OIE",s:"องค์กรสุขภาพระหว่างประเทศ",ok:true},{i:"🎬",l:"Hollywood Studios",s:"บริษัทหนัง",ok:false}],e:"Veterinary Epidemiologist ทำงานกับ WHO, FAO ป้องกันโรค Avian Flu, Rabies, COVID ที่มาจากสัตว์"},
+    {t:"emoji",v:"🐾🏥💉",q:"3 Emoji นี้สื่อถึงสาขาสัตวแพทย์ใด?",c:[{i:"🐶",l:"Small Animal Practice",s:"สัตวแพทย์สัตว์เลี้ยง",ok:true},{i:"🚀",l:"Space Vet",s:"สัตวแพทย์อวกาศ",ok:false}],e:"🐾🏥💉 = Small Animal Vet คลินิกสุนัขแมว เป็นตลาดที่โตเร็วมากในยุคที่คนเลี้ยงสัตว์เพิ่มขึ้นต่อเนื่อง"},
+    {t:"career",v:"🐟",q:"สัตวแพทย์ที่ดูแลสุขภาพปลาและกุ้งในฟาร์มเพาะเลี้ยงเรียกว่าอะไร?",c:[{i:"🐠",l:"Aquatic Veterinarian",s:"สัตวแพทย์สัตว์น้ำ",ok:true},{i:"🚁",l:"Aerial Vet",s:"สัตวแพทย์ทางอากาศ",ok:false}],e:"Aquatic Vet ดูแลฟาร์มกุ้ง ปลา เป็นสาขาขาดแคลนมากในไทย ซึ่งเป็นผู้ส่งออกอาหารทะเลรายใหญ่ของโลก"},
+  ]},
+  {id:"eng",emoji:"⚙️",name:"วิศวกรรมศาสตร์",eng:"Engineering",qs:[
+    {t:"career",v:"🤖",q:"วิศวกรที่สร้างและฝึกโมเดล AI เพื่อให้คอมพิวเตอร์เรียนรู้เองเรียกว่าอะไร?",c:[{i:"🧠",l:"Machine Learning Engineer",s:"วิศวกร ML",ok:true},{i:"🎭",l:"Digital Artist",s:"ศิลปินดิจิทัล",ok:false}],e:"ML Engineer เขียนโค้ดสร้าง Model ฝึกข้อมูล และ Deploy AI เข้าระบบจริง เป็นอาชีพขาดแคลนมากที่สุดในโลกตอนนี้"},
+    {t:"career",v:"🔐",q:"วิศวกรที่ป้องกันระบบคอมพิวเตอร์จากการโจมตีของแฮกเกอร์เรียกว่าอะไร?",c:[{i:"🛡️",l:"Cybersecurity Engineer",s:"วิศวกรความมั่นคงไซเบอร์",ok:true},{i:"🌾",l:"Agricultural Engineer",s:"วิศวกรเกษตร",ok:false}],e:"Cybersecurity Engineer ปกป้องข้อมูลและระบบ เป็นสายที่เงินเดือนสูงมากและขาดแคลนทั่วโลก"},
+    {t:"career",v:"🏗️",q:"วิศวกรที่ดูแลความแข็งแรงและปลอดภัยของโครงสร้างสะพานและตึกสูงเรียกว่าอะไร?",c:[{i:"🏗️",l:"Structural Engineer",s:"วิศวกรโครงสร้าง",ok:true},{i:"🎪",l:"Event Engineer",s:"วิศวกรงานอีเวนต์",ok:false}],e:"Structural Engineer คำนวณและออกแบบโครงสร้างให้รับน้ำหนักได้ ต้องรับผิดชอบความปลอดภัยของผู้ใช้งาน"},
+    {t:"emoji",v:"⚙️💻🔋",q:"3 Emoji นี้สื่อถึงสาขาวิศวกรรมใด?",c:[{i:"⚡",l:"Electrical & Energy Engineering",s:"วิศวกรรมไฟฟ้าและพลังงาน",ok:true},{i:"🎪",l:"Event Engineering",s:"วิศวกรงานอีเวนต์",ok:false}],e:"⚙️💻🔋 = วิศวกรรมไฟฟ้าและพลังงาน ครอบคลุม EV, Smart Grid, Renewable Energy และ Embedded Systems"},
+    {t:"career",v:"🌞",q:"วิศวกรที่ออกแบบและติดตั้งระบบโซลาร์เซลล์และพลังงานลมเรียกว่าอะไร?",c:[{i:"⚡",l:"Renewable Energy Engineer",s:"วิศวกรพลังงานสะอาด",ok:true},{i:"🎭",l:"Stage Engineer",s:"วิศวกรเวที",ok:false}],e:"Renewable Energy Engineer อาชีพที่โตเร็วที่สุดในทศวรรษนี้ รองรับนโยบาย Net Zero ของทั้งรัฐและเอกชน"},
+  ]},
+  {id:"arch",emoji:"📐",name:"สถาปัตยกรรมศาสตร์",eng:"Architecture",qs:[
+    {t:"career",v:"🌿",q:"สถาปนิกที่ออกแบบอาคารประหยัดพลังงานตามมาตรฐาน LEED เรียกว่าอะไร?",c:[{i:"♻️",l:"Sustainable / Green Architect",s:"สถาปนิกยั่งยืน",ok:true},{i:"🎭",l:"Theater Architect",s:"สถาปนิกโรงละคร",ok:false}],e:"Green Architect ออกแบบตามมาตรฐาน LEED หรือ TREES ในไทย ตลาดงานโตมากตามนโยบาย Net Zero"},
+    {t:"career",v:"🏙️",q:"ผู้วางแผนการใช้ที่ดิน ระบบขนส่ง และโครงสร้างพื้นฐานของเมืองทั้งระบบเรียกว่าอะไร?",c:[{i:"🗺️",l:"Urban Planner",s:"นักผังเมือง",ok:true},{i:"🎸",l:"Urban DJ",s:"ดีเจในเมือง",ok:false}],e:"Urban Planner ทำงานกับ กทม. กรมโยธาฯ วางผังเมืองและระบบขนส่งให้คนในเมืองใช้ชีวิตได้สะดวกขึ้น"},
+    {t:"career",v:"🎮",q:"สถาปนิกที่ใช้ทักษะออกแบบสร้างโลกและฉากใน Video Game เรียกว่าอะไร?",c:[{i:"🕹️",l:"Game Environment Designer",s:"นักออกแบบสิ่งแวดล้อมในเกม",ok:true},{i:"🔬",l:"Building Scientist",s:"นักวิทยาศาสตร์อาคาร",ok:false}],e:"Game Environment Designer ใช้ทักษะสถาปัตย์สร้างโลกเสมือน ทำงานกับ Studio เกมระดับโลก เงินเดือนสูงมาก"},
+    {t:"emoji",v:"🏛️📐✏️",q:"3 Emoji นี้สื่อถึงสาขาสถาปัตย์ใด?",c:[{i:"🏗️",l:"Architectural Design",s:"งานออกแบบสถาปัตยกรรม",ok:true},{i:"💊",l:"Pharmacy",s:"เภสัชกรรม",ok:false}],e:"🏛️📐✏️ = Architectural Design ผสมทักษะวาดแบบ คำนวณโครงสร้าง และวิสัยทัศน์เชิงพื้นที่เข้าด้วยกัน"},
+    {t:"career",v:"🌆",q:"สถาปนิกที่ออกแบบและตกแต่งพื้นที่ภายในโรงแรม ออฟฟิศ และห้างสรรพสินค้าเรียกว่าอะไร?",c:[{i:"🛋️",l:"Interior Designer",s:"มัณฑนากร",ok:true},{i:"🎵",l:"Interior Musician",s:"นักดนตรีภายใน",ok:false}],e:"Interior Designer ออกแบบพื้นที่ภายใน ผสม Art กับ Function ทำงานให้ Hospitality, Retail และ Commercial"},
+  ]},
+  {id:"finearts",emoji:"🎨",name:"ศิลปกรรมศาสตร์",eng:"Fine & Applied Arts",qs:[
+    {t:"career",v:"🖥️",q:"ศิลปินที่ออกแบบ Interface แอปและเว็บให้ใช้งานง่ายและสวยงามเรียกว่าอะไร?",c:[{i:"💻",l:"UI/UX Designer",s:"นักออกแบบ UI/UX",ok:true},{i:"🏗️",l:"Civil Engineer",s:"วิศวกรโยธา",ok:false}],e:"UI ออกแบบรูปลักษณ์ UX ออกแบบประสบการณ์ผู้ใช้ ต้องเข้าใจทั้งจิตวิทยาและศิลปะ เงินเดือนสูงมาก"},
+    {t:"career",v:"🎬",q:"ศิลปินที่สร้างภาพเคลื่อนไหวและ Animation สำหรับโฆษณาและภาพยนตร์เรียกว่าอะไร?",c:[{i:"✨",l:"Motion Graphic Artist",s:"ศิลปิน Motion Graphic",ok:true},{i:"🔬",l:"Lab Technician",s:"นักเทคนิคแล็บ",ok:false}],e:"Motion Graphic Artist ทำ Animation โฆษณา Intro VDO และ Visual Effect เป็นที่ต้องการในทุกสื่อดิจิทัล"},
+    {t:"career",v:"🏛️",q:"ผู้คัดเลือกและจัดนิทรรศการศิลปะในพิพิธภัณฑ์และแกลเลอรีเรียกว่าอะไร?",c:[{i:"🖼️",l:"Art Curator",s:"ภัณฑารักษ์",ok:true},{i:"🏊",l:"Pool Designer",s:"นักออกแบบสระ",ok:false}],e:"Art Curator ดูแล Collection และจัด Exhibition ทำงานในพิพิธภัณฑ์ แกลเลอรี หรือ Auction House"},
+    {t:"emoji",v:"🎨✏️💡",q:"3 Emoji นี้สื่อถึงอาชีพศิลปกรรมฯ ใด?",c:[{i:"🖼️",l:"Creative Director",s:"ผู้อำนวยการสร้างสรรค์",ok:true},{i:"⚗️",l:"Chemist",s:"นักเคมี",ok:false}],e:"🎨✏️💡 = Creative Director กำหนดทิศทางภาพรวมงานสร้างสรรค์ทั้งหมดในองค์กรหรือ Agency"},
+    {t:"career",v:"🎮",q:"ศิลปินที่วาดตัวละครและออกแบบโลกใน Video Game หรือภาพยนตร์ Animation เรียกว่าอะไร?",c:[{i:"🕹️",l:"Concept Artist",s:"ศิลปินคอนเซ็ปต์",ok:true},{i:"🔬",l:"Art Scientist",s:"นักวิทยาศาสตร์ศิลป์",ok:false}],e:"Concept Artist วาด Character, Environment และ Prop ให้เกมและภาพยนตร์ ทำงานกับ Studio เกมระดับโลก"},
+  ]},
+  {id:"sci",emoji:"🔬",name:"วิทยาศาสตร์",eng:"Science",qs:[
+    {t:"career",v:"🧫",q:"นักวิทยาศาสตร์ที่ตรวจสอบความปลอดภัยและคุณภาพของอาหารในห้องแล็บเรียกว่าอะไร?",c:[{i:"🧪",l:"Food Scientist",s:"นักวิทยาศาสตร์อาหาร",ok:true},{i:"🚁",l:"Helicopter Pilot",s:"นักบิน",ok:false}],e:"Food Scientist ทดสอบสารปนเปื้อน โภชนาการ และอายุการเก็บรักษา ทำงานในโรงงานอาหารและแล็บ"},
+    {t:"career",v:"🌱",q:"นักวิทยาศาสตร์ที่วัด Carbon Footprint และวิเคราะห์ผลกระทบสิ่งแวดล้อมของธุรกิจเรียกว่าอะไร?",c:[{i:"🌍",l:"Environmental Scientist / ESG Analyst",s:"นักวิทยาศาสตร์สิ่งแวดล้อม",ok:true},{i:"🎭",l:"Actor",s:"นักแสดง",ok:false}],e:"ESG Analyst วัด Carbon Footprint วิเคราะห์ผลกระทบสิ่งแวดล้อม ทำงานในบริษัทและองค์กรทุกประเภท"},
+    {t:"career",v:"🧬",q:"สาขาที่ผสมชีววิทยากับคอมพิวเตอร์เพื่อวิเคราะห์ข้อมูลยีนส์และ DNA เรียกว่าอะไร?",c:[{i:"💻",l:"Bioinformatics",s:"ชีวสารสนเทศ",ok:true},{i:"🏊",l:"Swimming Biology",s:"ชีววิทยาว่ายน้ำ",ok:false}],e:"Bioinformatics ใช้คอมพิวเตอร์วิเคราะห์ Genome ขนาดใหญ่ เป็นอาชีพอนาคตในวงการสุขภาพและยา"},
+    {t:"emoji",v:"🔬🧫💡",q:"3 Emoji นี้สื่อถึงสาขาวิทยาศาสตร์ใด?",c:[{i:"🧬",l:"Biotechnology",s:"เทคโนโลยีชีวภาพ",ok:true},{i:"🎪",l:"Circus Science",s:"วิทยาศาสตร์ละครสัตว์",ok:false}],e:"🔬🧫💡 = Biotechnology พัฒนายา วัคซีน สิ่งมีชีวิตดัดแปลง ตลาดงานโตเร็วมากในทศวรรษนี้"},
+    {t:"career",v:"♻️",q:"นักวิทยาศาสตร์ที่พัฒนาพลาสติกชีวภาพและวัสดุเป็นมิตรกับสิ่งแวดล้อมเรียกว่าอะไร?",c:[{i:"🌿",l:"Green / Materials Scientist",s:"นักวิทยาศาสตร์วัสดุยั่งยืน",ok:true},{i:"🚂",l:"Train Scientist",s:"นักวิทยาศาสตร์รถไฟ",ok:false}],e:"Green Materials Scientist พัฒนา Bio-plastic วัสดุ Eco-friendly ทำงานใน SCG, PTT, บริษัทเคมีระดับโลก"},
+  ]},
+  {id:"sports",emoji:"🏅",name:"วิทยาศาสตร์การกีฬา",eng:"Sports Science",qs:[
+    {t:"career",v:"🍎",q:"ผู้เชี่ยวชาญที่ออกแบบโปรแกรมอาหารเพื่อเพิ่มสมรรถนะนักกีฬาเรียกว่าอะไร?",c:[{i:"🥗",l:"Sports Nutritionist",s:"นักโภชนาการกีฬา",ok:true},{i:"🎸",l:"Rock Star",s:"นักดนตรีร็อก",ok:false}],e:"Sports Nutritionist วางแผนอาหาร Supplement และ Recovery Plan ให้นักกีฬาตั้งแต่ระดับสโมสรถึงทีมชาติ"},
+    {t:"career",v:"📊",q:"การวิเคราะห์ข้อมูลการเคลื่อนไหวนักกีฬาด้วย Wearable Tech และ AI เรียกว่าอะไร?",c:[{i:"💻",l:"Sports Performance Analytics",s:"วิเคราะห์สมรรถนะกีฬา",ok:true},{i:"🎭",l:"Sports Acting",s:"การแสดงกีฬา",ok:false}],e:"Sports Analytics ใช้ GPS, Sensor และ AI วิเคราะห์ทุก Move ของนักกีฬา ใช้กันใน Premier League และ NBA"},
+    {t:"career",v:"🧠",q:"นักจิตวิทยาที่ช่วยนักกีฬาจัดการความกดดันและเพิ่มสมาธิในการแข่งขันเรียกว่าอะไร?",c:[{i:"🎯",l:"Mental Performance Coach",s:"โค้ชสมรรถนะจิตใจ",ok:true},{i:"🌾",l:"Farm Advisor",s:"ที่ปรึกษาฟาร์ม",ok:false}],e:"Mental Coach ช่วยนักกีฬาควบคุมจิตใจ ลดความกลัว เพิ่มความมั่นใจ เป็นสาขาที่ขาดแคลนมากในไทย"},
+    {t:"emoji",v:"🏅💪📈",q:"3 Emoji นี้สื่อถึงสาขาวิทยาศาสตร์การกีฬาใด?",c:[{i:"⚡",l:"Strength & Conditioning",s:"การเพิ่มสมรรถนะร่างกาย",ok:true},{i:"🧪",l:"Food Chemistry",s:"เคมีอาหาร",ok:false}],e:"🏅💪📈 = S&C Coach วางโปรแกรมฝึกซ้อม เพิ่ม Power, Speed, Endurance ทำงานกับสโมสรอาชีพระดับโลก"},
+    {t:"career",v:"🩹",q:"ผู้เชี่ยวชาญฟื้นฟูร่างกายนักกีฬาหลังได้รับบาดเจ็บจากการแข่งขันเรียกว่าอะไร?",c:[{i:"💆",l:"Sports Physiotherapist",s:"นักกายภาพบำบัดกีฬา",ok:true},{i:"🎙️",l:"Sports Commentator",s:"ผู้บรรยายกีฬา",ok:false}],e:"Sports PT ฟื้นฟูการบาดเจ็บ ป้องกันการบาดเจ็บซ้ำ ทำงานกับสโมสร ทีมชาติ และ High-Performance Center"},
+  ]},
+  {id:"psych",emoji:"🧠",name:"จิตวิทยา",eng:"Psychology",qs:[
+    {t:"career",v:"🧠",q:"จิตวิทยาแตกต่างจากจิตเวชศาสตร์อย่างไร?",c:[{i:"🎓",l:"จิตวิทยาไม่ใช่แพทย์ จึงไม่สั่งยาได้",s:"Psychologist vs Psychiatrist",ok:true},{i:"🏥",l:"จิตวิทยาเรียนในโรงพยาบาลเท่านั้น",s:"Hospital-only study",ok:false}],e:"Psychologist ไม่ได้เรียนแพทย์จึงไม่สั่งยา ส่วน Psychiatrist เป็นแพทย์เฉพาะทางจึงสั่งยาและรับผู้ป่วยหนักได้"},
+    {t:"career",v:"💼",q:"นักจิตวิทยาที่ช่วยองค์กรออกแบบวัฒนธรรมและเพิ่มประสิทธิภาพพนักงานเรียกว่าอะไร?",c:[{i:"🏢",l:"Organizational Psychologist",s:"จิตวิทยาองค์กร",ok:true},{i:"🌾",l:"Farm Consultant",s:"ที่ปรึกษาฟาร์ม",ok:false}],e:"Organizational Psychologist ทำงาน HR, Consulting ช่วยบริษัทสร้าง Culture, Engagement และ Leadership"},
+    {t:"career",v:"💻",q:"นักจิตวิทยาที่วิจัยพฤติกรรมผู้ใช้เพื่อออกแบบ App ให้ใช้งานง่ายขึ้นเรียกว่าอะไร?",c:[{i:"📱",l:"UX Researcher",s:"นักวิจัย UX",ok:true},{i:"🏊",l:"Swim Coach",s:"โค้ชว่ายน้ำ",ok:false}],e:"UX Researcher ใช้จิตวิทยาเข้าใจพฤติกรรมผู้ใช้ ออกแบบ App และ Product ให้ตอบโจทย์ที่สุด"},
+    {t:"emoji",v:"🧠💡🤝",q:"3 Emoji นี้สื่อถึงสาขาจิตวิทยาใด?",c:[{i:"❤️",l:"Counseling Psychology",s:"จิตวิทยาการให้คำปรึกษา",ok:true},{i:"🏗️",l:"Construction Psychology",s:"จิตวิทยาก่อสร้าง",ok:false}],e:"🧠💡🤝 = Counseling Psychology ช่วยคนแก้ปัญหาชีวิต จัดการความเครียด พัฒนาตัวเองผ่านการพูดคุย"},
+    {t:"career",v:"📊",q:"นักจิตวิทยาที่ใช้ข้อมูลและการทดลองเพื่อเข้าใจการตัดสินใจของผู้บริโภคเรียกว่าอะไร?",c:[{i:"🛒",l:"Consumer Psychologist",s:"จิตวิทยาผู้บริโภค",ok:true},{i:"🌊",l:"Ocean Psychologist",s:"จิตวิทยาทะเล",ok:false}],e:"Consumer Psychologist ทำงานใน Marketing Research, Retail ช่วยแบรนด์เข้าใจว่าลูกค้าตัดสินใจซื้อสินค้าอย่างไร"},
+  ]},
+  {id:"allied",emoji:"🩻",name:"สหเวชศาสตร์",eng:"Allied Health Sciences",qs:[
+    {t:"career",v:"🦴",q:"นักกายภาพบำบัดที่เชี่ยวชาญฟื้นฟูนักกีฬาหลังบาดเจ็บจากการแข่งขันเรียกว่าอะไร?",c:[{i:"🏃",l:"Sports Physiotherapist",s:"นักกายภาพบำบัดกีฬา",ok:true},{i:"🎵",l:"Music Therapist",s:"นักดนตรีบำบัด",ok:false}],e:"Sports PT ทำงานกับสโมสรกีฬา ทีมชาติ ฟื้นฟูการบาดเจ็บอย่างรวดเร็ว ป้องกันการบาดเจ็บซ้ำ"},
+    {t:"career",v:"🗣️",q:"ผู้เชี่ยวชาญที่ช่วยเด็กออทิสติกและผู้ป่วยโรคหลอดเลือดสมองฝึกพูดและกลืนเรียกว่าอะไร?",c:[{i:"💬",l:"Speech-Language Pathologist",s:"นักแก้ไขการพูด",ok:true},{i:"🌊",l:"Ocean Therapist",s:"นักบำบัดทะเล",ok:false}],e:"SLP เป็นสาขาขาดแคลนที่สุดในไทย ช่วยฝึกพูด กลืน สื่อสาร ทำงานใน รพ. โรงเรียน และคลินิก"},
+    {t:"career",v:"🧪",q:"นักเทคนิคการแพทย์ทำหน้าที่อะไรเป็นหลักในโรงพยาบาล?",c:[{i:"🔬",l:"วิเคราะห์เลือด ปัสสาวะ เชื้อโรคในห้องแล็บ",s:"Lab analysis",ok:true},{i:"🏗️",l:"ซ่อมเครื่องมือแพทย์",s:"Repair equipment",ok:false}],e:"Medical Technologist วิเคราะห์ตัวอย่างในห้องแล็บ ผลที่ได้ช่วยแพทย์วินิจฉัยโรคได้อย่างแม่นยำ"},
+    {t:"emoji",v:"🩺🩻💆",q:"3 Emoji นี้สื่อถึงสาขาสหเวชศาสตร์ใด?",c:[{i:"🏃",l:"Physical Therapy",s:"กายภาพบำบัด",ok:true},{i:"💰",l:"Financial Therapy",s:"การเงินบำบัด",ok:false}],e:"🩺🩻💆 = Physical Therapy ฟื้นฟูร่างกาย บรรเทาปวด ป้องกันการบาดเจ็บซ้ำ เป็นที่ต้องการสูงทั่วโลก"},
+    {t:"career",v:"👁️",q:"ผู้เชี่ยวชาญตรวจสายตาและจ่ายแว่นโดยไม่ต้องเป็นแพทย์เรียกว่าอะไร?",c:[{i:"👓",l:"Optometrist",s:"นักทัศนมาตร",ok:true},{i:"📺",l:"TV Director",s:"ผู้กำกับทีวี",ok:false}],e:"Optometrist ตรวจสายตา จ่ายแว่น คอนแทคเลนส์ ทำงานในคลินิก รพ. หรือเปิดกิจการเองได้เลย"},
+  ]},
+  {id:"law",emoji:"⚖️",name:"นิติศาสตร์",eng:"Law",qs:[
+    {t:"career",v:"⚖️",q:"ทนายความที่ดูแลสัญญา M&A และการควบรวมกิจการของบริษัทใหญ่เรียกว่าอะไร?",c:[{i:"📄",l:"Corporate Lawyer",s:"ทนายองค์กร",ok:true},{i:"🌊",l:"Maritime Lawyer",s:"ทนายทะเล",ok:false}],e:"Corporate Lawyer ดูแล M&A, IPO, Joint Venture เป็นสายกฎหมายที่เงินเดือนสูงสุดในภาคเอกชน"},
+    {t:"career",v:"🔐",q:"กฎหมายคุ้มครองข้อมูลส่วนตัวในยุคดิจิทัลที่ไทยประกาศใช้ปี 2562 เรียกว่าอะไร?",c:[{i:"🛡️",l:"PDPA",s:"พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล",ok:true},{i:"⚓",l:"Maritime Law",s:"กฎหมายทางทะเล",ok:false}],e:"PDPA ทุกบริษัทที่เก็บข้อมูลลูกค้าต้องปฏิบัติตาม มีโทษปรับสูงถึง 5 ล้านบาท ทนายด้านนี้ขาดแคลนมาก"},
+    {t:"career",v:"💼",q:"นิติศาสตร์ที่เชี่ยวชาญกฎหมาย Cybersecurity และ Digital Platform เรียกว่าอะไร?",c:[{i:"💻",l:"Cyber / Tech Lawyer",s:"ทนายกฎหมายเทคโนโลยี",ok:true},{i:"🌾",l:"Agriculture Lawyer",s:"ทนายเกษตร",ok:false}],e:"Cyber Lawyer เชี่ยวชาญ PDPA, AI Law, Platform Regulation เป็นสาขาขาดแคลนที่สุดในกฎหมายตอนนี้"},
+    {t:"emoji",v:"⚖️📜🔍",q:"3 Emoji นี้สื่อถึงสาขากฎหมายใด?",c:[{i:"🔬",l:"Forensic Law",s:"นิติวิทยาศาสตร์",ok:true},{i:"🎭",l:"Drama Law",s:"กฎหมายละคร",ok:false}],e:"⚖️📜🔍 = Forensic Science ผสมกฎหมายและวิทยาศาสตร์ วิเคราะห์หลักฐานคดีอาชญากรรม ทำงานกับ DSI"},
+    {t:"career",v:"🌍",q:"ทนายความที่ทำงานในองค์กรระหว่างประเทศอย่าง UN หรือ WTO เรียกว่าอะไร?",c:[{i:"🌐",l:"International Lawyer",s:"ทนายกฎหมายระหว่างประเทศ",ok:true},{i:"🎪",l:"Circus Lawyer",s:"ทนายละครสัตว์",ok:false}],e:"International Lawyer ทำงานกับ UN, WTO หรือ Law Firm ระดับโลก เช่น Baker McKenzie, Linklaters"},
+  ]},
+  {id:"commerce",emoji:"📈",name:"พาณิชยศาสตร์และการบัญชี",eng:"Commerce & Accountancy",qs:[
+    {t:"career",v:"💰",q:"Investment Banker ทำหน้าที่หลักอะไรในการช่วยบริษัทระดมทุน?",c:[{i:"🏦",l:"ช่วย IPO, M&A และออกพันธบัตร",s:"Capital markets advisory",ok:true},{i:"🏊",l:"บริหารสระว่ายน้ำ",s:"Pool management",ok:false}],e:"Investment Banker ช่วยบริษัทออก IPO ระดมทุน ควบรวมกิจการ Bonus บางปีสูงกว่าเงินเดือนหลายเท่า"},
+    {t:"career",v:"📊",q:"ผู้วิเคราะห์งบการเงินและแนะนำนักลงทุนว่าหุ้นตัวไหนน่าซื้อเรียกว่าอะไร?",c:[{i:"📈",l:"Financial Analyst / CFA",s:"นักวิเคราะห์การเงิน",ok:true},{i:"🏗️",l:"Construction Analyst",s:"นักวิเคราะห์ก่อสร้าง",ok:false}],e:"Financial Analyst วิเคราะห์งบการเงิน หุ้น กองทุน ส่วน CFA คือ Certification ระดับโลกที่ทำให้เงินเดือนพุ่ง"},
+    {t:"career",v:"🛍️",q:"Merchandise Buyer ในธุรกิจค้าปลีกทำหน้าที่อะไร?",c:[{i:"🏷️",l:"คัดเลือกสินค้าและเจรจาราคากับ Supplier",s:"Product selection & negotiation",ok:true},{i:"🚚",l:"ขับรถขนส่งสินค้า",s:"Delivery driver",ok:false}],e:"Buyer คือหัวใจของค้าปลีก ตัดสินใจว่าสินค้าอะไรจะวางขาย ราคาเท่าไร และ Supplier รายไหนดีที่สุด"},
+    {t:"emoji",v:"📈💼📊",q:"3 Emoji นี้สื่อถึงสายงานพาณิชย์ใด?",c:[{i:"💡",l:"Business Strategy & Consulting",s:"กลยุทธ์ธุรกิจ",ok:true},{i:"🌿",l:"Environmental Science",s:"วิทยาศาสตร์สิ่งแวดล้อม",ok:false}],e:"📈💼📊 = Business Strategy & Consulting ใช้ข้อมูลและทักษะวิเคราะห์วางแผนธุรกิจ ทำงานใน Consulting Firm ชั้นนำ"},
+    {t:"career",v:"📦",q:"ผู้ตรวจสอบบัญชีและรับรองความถูกต้องของงบการเงินบริษัทเรียกว่าอะไร?",c:[{i:"✅",l:"CPA (Certified Public Accountant)",s:"นักบัญชีสาธารณะรับอนุญาต",ok:true},{i:"🚀",l:"CFO Trainee",s:"ผู้ฝึกงาน CFO",ok:false}],e:"CPA ตรวจสอบและรับรองงบการเงิน ทำงานใน Big 4 (Deloitte, PWC, KPMG, EY) เงินเดือนสูงมาก"},
+  ]},
+  {id:"econ",emoji:"💹",name:"เศรษฐศาสตร์",eng:"Economics",qs:[
+    {t:"career",v:"🏦",q:"นักเศรษฐศาสตร์ที่วิเคราะห์ดอกเบี้ยและนโยบายการเงินในธนาคารกลางเรียกว่าอะไร?",c:[{i:"💱",l:"Monetary Economist",s:"นักเศรษฐศาสตร์การเงิน",ok:true},{i:"🎭",l:"Economic Actor",s:"นักแสดงเศรษฐกิจ",ok:false}],e:"Monetary Economist ทำงานใน ธปท. (BoT) วิเคราะห์อัตราเงินเฟ้อ GDP และกำหนดนโยบายดอกเบี้ย"},
+    {t:"career",v:"💡",q:"เศรษฐศาสตร์ที่ใช้ Machine Learning วิเคราะห์ข้อมูลขนาดใหญ่ (Big Data) เรียกว่าอะไร?",c:[{i:"💻",l:"Data Economics / Econometrics",s:"เศรษฐมิติและ Data Science",ok:true},{i:"🌊",l:"Oceanomics",s:"เศรษฐศาสตร์ทะเล",ok:false}],e:"Data Economics ผสม Python, R, ML กับเศรษฐศาสตร์ วิเคราะห์ Big Data เงินเดือนสูงมากในยุค Data"},
+    {t:"career",v:"🔮",q:"Demand Forecasting ที่นักเศรษฐศาสตร์ทำในธุรกิจค้าปลีกคืออะไร?",c:[{i:"📈",l:"คาดการณ์ปริมาณสินค้าที่ลูกค้าจะซื้อ",s:"Predicting customer demand",ok:true},{i:"🎭",l:"พยากรณ์ดวงชะตา",s:"Fortune telling",ok:false}],e:"Demand Forecasting ใช้ Data ประวัติการขายคาดการณ์ความต้องการ ช่วยให้สินค้าไม่ขาดและไม่ล้นสต็อก"},
+    {t:"emoji",v:"💹📊🌍",q:"3 Emoji นี้สื่อถึงสาขาเศรษฐศาสตร์ใด?",c:[{i:"🌐",l:"International Economics",s:"เศรษฐศาสตร์ระหว่างประเทศ",ok:true},{i:"🏋️",l:"Sports Economics",s:"เศรษฐศาสตร์กีฬา",ok:false}],e:"💹📊🌍 = International Economics ศึกษาการค้า FDI สกุลเงิน ทำงานใน BoT กระทรวงพาณิชย์ IMF World Bank"},
+    {t:"career",v:"🌍",q:"นักเศรษฐศาสตร์ที่ทำงานกับ World Bank แก้ปัญหาความยากจนในประเทศกำลังพัฒนาเรียกว่าอะไร?",c:[{i:"🌱",l:"Development Economist",s:"นักเศรษฐศาสตร์พัฒนา",ok:true},{i:"🏗️",l:"Construction Economist",s:"นักเศรษฐศาสตร์ก่อสร้าง",ok:false}],e:"Development Economist ออกแบบนโยบายแก้ความยากจน ทำงานกับ World Bank, ADB, UNDP ระดับโลก"},
+  ]},
+  {id:"arts",emoji:"📚",name:"อักษรศาสตร์",eng:"Arts",qs:[
+    {t:"career",v:"🌍",q:"อักษรฯ ที่ใช้ทักษะหลายภาษาเชื่อมการเจรจาธุรกิจระหว่างประเทศเรียกว่าอะไร?",c:[{i:"🗣️",l:"Conference Interpreter",s:"ล่ามการประชุม",ok:true},{i:"🔬",l:"Biochemist",s:"นักชีวเคมี",ok:false}],e:"Conference Interpreter แปลสดในการประชุม ทำงานกับ UN, สถานทูต, ASEAN ค่าตัวสูงมาก"},
+    {t:"career",v:"💻",q:"อักษรฯ ที่ใช้ความรู้ภาษาศาสตร์สร้าง AI Chatbot และระบบแปลภาษาเรียกว่าอะไร?",c:[{i:"🧠",l:"NLP / Computational Linguist",s:"ภาษาศาสตร์คอมพิวเตอร์",ok:true},{i:"🚂",l:"Train Operator",s:"คนขับรถไฟ",ok:false}],e:"NLP Engineer สร้าง Google Translate, ChatBot, Voice Assistant โดยใช้ความรู้ภาษาศาสตร์เป็นฐาน"},
+    {t:"career",v:"✍️",q:"UX Writer คือใคร และทำงานอะไร?",c:[{i:"💬",l:"เขียน Copy ใน App และ Website ให้ใช้งานง่าย",s:"Writes UI text & microcopy",ok:true},{i:"📰",l:"เขียนข่าวหน้า 1 เท่านั้น",s:"Front-page journalist only",ok:false}],e:"UX Writer เขียนข้อความใน App เช่น ปุ่ม Error Message ให้เข้าใจง่าย เป็นอาชีพที่ Tech Company ต้องการมาก"},
+    {t:"emoji",v:"📚✍️🌐",q:"3 Emoji นี้สื่อถึงอาชีพอักษรฯ สาขาใด?",c:[{i:"🗣️",l:"Translator / Interpreter",s:"นักแปลและล่าม",ok:true},{i:"🏗️",l:"Architect",s:"สถาปนิก",ok:false}],e:"📚✍️🌐 = นักแปลและล่าม ใช้ทักษะภาษา 2-3 ภาษา แปลสดในการประชุมระดับโลก ค่าตัวสูงมาก"},
+    {t:"career",v:"📰",q:"อักษรฯ ที่รายงานข่าวต่างประเทศและเจาะข่าวเชิงสืบสวนเรียกว่าอะไร?",c:[{i:"🌐",l:"International / Investigative Journalist",s:"นักข่าวต่างประเทศ",ok:true},{i:"🎸",l:"Music Journalist",s:"นักข่าวดนตรี",ok:false}],e:"International Journalist รายงานข่าวต่างประเทศ ทำงานใน BBC Thai, Reuters, AP ต้องรู้หลายภาษา"},
+  ]},
+  {id:"edu",emoji:"🏫",name:"ครุศาสตร์",eng:"Education",qs:[
+    {t:"career",v:"💻",q:"ครุฯ ที่ออกแบบ E-Learning และ Online Course สำหรับองค์กรและบริษัทเรียกว่าอะไร?",c:[{i:"🎓",l:"Instructional Designer",s:"นักออกแบบการเรียนรู้",ok:true},{i:"🏋️",l:"PE Coach",s:"ครูพลศึกษา",ok:false}],e:"Instructional Designer ออกแบบ Course บน LMS เช่น Coursera, Moodle ทำงานใน EdTech หรือแผนก L&D ขององค์กร"},
+    {t:"career",v:"🤖",q:"ระบบการเรียนรู้ที่ใช้ AI ปรับเนื้อหาให้เหมาะกับนักเรียนแต่ละคนเรียกว่าอะไร?",c:[{i:"💡",l:"Adaptive Learning",s:"การเรียนรู้แบบปรับตัว",ok:true},{i:"🏊",l:"Underwater Learning",s:"การเรียนในน้ำ",ok:false}],e:"Adaptive Learning ใช้ AI ปรับระดับบทเรียนและความยากให้เหมาะกับนักเรียนแต่ละคนโดยอัตโนมัติ"},
+    {t:"career",v:"🎯",q:"ผู้เชี่ยวชาญออกแบบโปรแกรม Training และพัฒนาศักยภาพพนักงานในองค์กรเรียกว่าอะไร?",c:[{i:"💼",l:"L&D Specialist",s:"Learning & Development",ok:true},{i:"🌊",l:"Marine Educator",s:"ครูทะเล",ok:false}],e:"L&D Specialist ออกแบบ Training, Career Path และ Performance Management ให้พนักงานในองค์กร"},
+    {t:"emoji",v:"🏫📚🎯",q:"3 Emoji นี้สื่อถึงสาขาครุศาสตร์ใด?",c:[{i:"🤖",l:"Educational Technology",s:"เทคโนโลยีการศึกษา",ok:true},{i:"⚗️",l:"Chemistry",s:"เคมี",ok:false}],e:"🏫📚🎯 = EdTech ผสมครุศาสตร์กับเทคโนโลยี สร้าง Learning Platform, AI Tutor และ Gamified Education"},
+    {t:"career",v:"🌍",q:"ครุฯ ที่ทำงานกับ UNESCO วางแผนพัฒนาระบบการศึกษาในประเทศกำลังพัฒนาเรียกว่าอะไร?",c:[{i:"🌐",l:"International Education Developer",s:"นักพัฒนาการศึกษาโลก",ok:true},{i:"🎸",l:"Global Guitarist",s:"นักกีตาร์โลก",ok:false}],e:"International Education Developer ทำงานกับ UNESCO, UNICEF, ADB ปฏิรูปการศึกษาในระดับนานาชาติ"},
+  ]},
+  {id:"poli",emoji:"🏛️",name:"รัฐศาสตร์",eng:"Political Science",qs:[
+    {t:"career",v:"🌍",q:"นักการทูตไทยที่ทำงานในสถานทูตต่างประเทศสังกัดกระทรวงใด?",c:[{i:"🤝",l:"กระทรวงการต่างประเทศ",s:"Ministry of Foreign Affairs",ok:true},{i:"🏥",l:"กระทรวงสาธารณสุข",s:"Ministry of Public Health",ok:false}],e:"นักการทูตสังกัดกระทรวงการต่างประเทศ ต้องผ่านสอบ Foreign Service Exam ก่อนปฏิบัติการทั่วโลก"},
+    {t:"career",v:"📋",q:"องค์กรวิจัยที่เสนอแนะนโยบายสาธารณะให้รัฐบาล เช่น TDRI เรียกว่าอะไร?",c:[{i:"🔍",l:"Think Tank",s:"ศูนย์วิจัยนโยบาย",ok:true},{i:"🎮",l:"Strategy Game Studio",s:"บริษัทเกมกลยุทธ์",ok:false}],e:"Think Tank เช่น TDRI, PIER ทำวิจัยเชิงนโยบาย เสนอแนะรัฐบาล เป็นที่ทำงานยอดนิยมของรัฐศาสตร์"},
+    {t:"career",v:"📊",q:"ผู้เชี่ยวชาญที่วิเคราะห์และออกแบบนโยบายสาธารณะให้ภาครัฐเรียกว่าอะไร?",c:[{i:"🔍",l:"Policy Analyst",s:"นักวิเคราะห์นโยบาย",ok:true},{i:"🎭",l:"Political Actor",s:"นักแสดงการเมือง",ok:false}],e:"Policy Analyst ทำงานใน TDRI สภาพัฒน์ฯ กระทรวงต่างๆ ช่วยออกแบบนโยบายเศรษฐกิจ สังคม สิ่งแวดล้อม"},
+    {t:"emoji",v:"🏛️🌍📋",q:"3 Emoji นี้สื่อถึงสาขารัฐศาสตร์ใด?",c:[{i:"🌐",l:"International Relations",s:"ความสัมพันธ์ระหว่างประเทศ",ok:true},{i:"🎸",l:"Political Music",s:"เพลงการเมือง",ok:false}],e:"🏛️🌍📋 = International Relations เรียนการทูต ความสัมพันธ์ระหว่างรัฐ และองค์กรระหว่างประเทศ"},
+    {t:"career",v:"🌿",q:"ผู้เชี่ยวชาญที่ดูแลนโยบาย ESG และโครงการเพื่อสังคมขององค์กรเรียกว่าอะไร?",c:[{i:"♻️",l:"CSR & ESG Manager",s:"ผู้จัดการ CSR และ ESG",ok:true},{i:"🏋️",l:"Fitness Manager",s:"ผู้จัดการฟิตเนส",ok:false}],e:"CSR & ESG Manager ดูแลโครงการสิ่งแวดล้อมและสังคม รายงาน ESG ให้นักลงทุน ทำงานในบริษัทมหาชน"},
+  ]},
+  {id:"comm",emoji:"📡",name:"นิเทศศาสตร์",eng:"Communication Arts",qs:[
+    {t:"career",v:"📱",q:"ผู้เชี่ยวชาญที่วางกลยุทธ์ Content และดูแล Social Media ทุกช่องทางเรียกว่าอะไร?",c:[{i:"💡",l:"Social Media Strategist",s:"นักกลยุทธ์โซเชียลมีเดีย",ok:true},{i:"🏗️",l:"Social Engineer",s:"วิศวกรสังคม",ok:false}],e:"Social Media Strategist วางแผน Content Calendar, KPI และ Paid Campaign ทุกแพลตฟอร์ม ไม่ใช่แค่โพสต์รูป"},
+    {t:"career",v:"📢",q:"ผู้เชี่ยวชาญบริหารภาพลักษณ์และรับมือวิกฤตสื่อขององค์กรเรียกว่าอะไร?",c:[{i:"🏢",l:"PR / Corporate Communications",s:"ประชาสัมพันธ์องค์กร",ok:true},{i:"🌊",l:"Ocean Communicator",s:"นักสื่อสารทะเล",ok:false}],e:"Corporate Comms Manager บริหาร Media Relations, Crisis Communications ให้แบรนด์ระดับองค์กร"},
+    {t:"career",v:"📊",q:"นิเทศฯ ที่ใช้ Google Analytics และ Data วัดผลแคมเปญโฆษณาออนไลน์เรียกว่าอะไร?",c:[{i:"💻",l:"Digital Marketing Analyst",s:"นักวิเคราะห์การตลาดดิจิทัล",ok:true},{i:"🧪",l:"Science Communicator",s:"นักสื่อสารวิทยาศาสตร์",ok:false}],e:"Digital Marketing Analyst วัดผล Campaign ใช้ GA4, Meta Business Suite, TikTok Analytics ปรับกลยุทธ์ให้คุ้มค่า"},
+    {t:"emoji",v:"📡🎬📢",q:"3 Emoji นี้สื่อถึงสาขานิเทศฯ ใด?",c:[{i:"📰",l:"Journalism & Broadcasting",s:"วารสารศาสตร์และการกระจายเสียง",ok:true},{i:"🧪",l:"Science Lab",s:"แล็บวิทยาศาสตร์",ok:false}],e:"📡🎬📢 = Journalism & Broadcasting รายงานข่าว ผลิตรายการโทรทัศน์ สร้าง Content ข่าวทุกแพลตฟอร์ม"},
+    {t:"career",v:"🎬",q:"นิเทศฯ ที่กำกับและผลิต Original Series สำหรับ Streaming Platform เรียกว่าอะไร?",c:[{i:"🎥",l:"Content Director / Showrunner",s:"ผู้กำกับและโปรดิวเซอร์",ok:true},{i:"🌊",l:"Wave Director",s:"ผู้กำกับคลื่น",ok:false}],e:"Showrunner ดูแล Original Series Netflix, YouTube Originals ตลาด Streaming เติบโตมหาศาลและยังขาดคนอยู่มาก"},
+  ]},
+  {id:"demog",emoji:"🌏",name:"ประชากรศาสตร์",eng:"Population Studies",qs:[
+    {t:"career",v:"🗺️",q:"เครื่องมือที่ใช้แผนที่ดิจิทัลวิเคราะห์การกระจายตัวของประชากรและทรัพยากรเรียกว่าอะไร?",c:[{i:"🌍",l:"GIS (Geographic Information System)",s:"ระบบสารสนเทศภูมิศาสตร์",ok:true},{i:"🎮",l:"GPS Gaming",s:"การเล่นเกม GPS",ok:false}],e:"GIS ผสานแผนที่กับข้อมูล วิเคราะห์ทำเล ภัยพิบัติ การกระจายประชากร ใช้ใน กทม. กรมป้องกันภัย GISTDA"},
+    {t:"career",v:"👴",q:"ผู้เชี่ยวชาญวางแผนนโยบายรับมือสังคมสูงวัยและระบบบำนาญระยะยาวเรียกว่าอะไร?",c:[{i:"📋",l:"Ageing Policy Specialist",s:"ผู้เชี่ยวชาญนโยบายผู้สูงอายุ",ok:true},{i:"🎸",l:"Senior Musician",s:"นักดนตรีอาวุโส",ok:false}],e:"Ageing Policy Specialist ทำงานกับ WHO กรมผู้สูงอายุ วางนโยบาย Long-Term Care สำหรับสังคมผู้สูงวัย"},
+    {t:"career",v:"📱",q:"CRM (Customer Relationship Management) ช่วยธุรกิจอะไรเป็นหลัก?",c:[{i:"🎯",l:"วิเคราะห์พฤติกรรมลูกค้าและส่ง Offer ที่ตรงใจ",s:"Personalized targeting",ok:true},{i:"🌊",l:"บริหารจัดการทะเล",s:"Ocean management",ok:false}],e:"CRM ใช้ข้อมูลประวัติการซื้อ แบ่ง Segment ลูกค้า ส่ง Personalized Offer เพิ่ม Loyalty และยอดขาย"},
+    {t:"emoji",v:"🌏👥📊",q:"3 Emoji นี้สื่อถึงสาขาประชากรศาสตร์ใด?",c:[{i:"📍",l:"Urban & Regional Planning",s:"ผังเมืองและการวางแผนภูมิภาค",ok:true},{i:"🎭",l:"Population Theater",s:"ละครประชากร",ok:false}],e:"🌏👥📊 = Urban Planning ใช้ข้อมูลประชากรวางผังเมือง กำหนดทำเลพัฒนา ออกแบบระบบขนส่งให้รองรับคนในเมือง"},
+    {t:"career",v:"🔮",q:"Demand Forecasting ที่ใช้ข้อมูลประชากรคาดการณ์ความต้องการสินค้าในอนาคตเรียกว่าสาขาใด?",c:[{i:"📈",l:"Consumer Demand Analytics",s:"วิเคราะห์ความต้องการผู้บริโภค",ok:true},{i:"🎪",l:"Circus Analytics",s:"การวิเคราะห์ละครสัตว์",ok:false}],e:"Consumer Demand Analytics ผสมประชากรศาสตร์กับ Data Science คาดการณ์ว่าคนกลุ่มไหนต้องการอะไร เมื่อไร"},
+  ]},
+];
+
+
+
+// ── STATE ──
+let CF=null,QP=[],CI=0,RS=[],ANS=false;
+
+// ── BUILD HOME ──
+function buildHome(){
+  const g=document.getElementById('facultyGrid');g.innerHTML='';
+  F.forEach((f,i)=>{
+    const c=document.createElement('div');c.className='fac-card';c.style.animationDelay=(i*.03)+'s';
+    c.innerHTML=`<span class="fac-emoji">${f.emoji}</span><div class="fac-name">${f.name}</div><div class="fac-eng">${f.eng}</div>`;
+    c.onclick=()=>startFac(f);g.appendChild(c);
+  });
+}
+function startFac(f){
+  CF=f;QP=[...f.qs].sort(()=>Math.random()-.5).slice(0,5);CI=0;RS=[];ANS=false;
+  document.getElementById('topFacEmoji').textContent=f.emoji;
+  document.getElementById('topFacName').textContent=f.name;
+  const tip=CRC_TIPS[f.id]||'Central Retail เปิดรับสมัครพนักงานหลากหลายตำแหน่ง สนใจดูได้ที่ careers.centralretail.com';
+  document.getElementById('tipsText').innerHTML=tip;
+  buildDots();showS('screenGame');renderQ();
+}
+function buildDots(){
+  const r=document.getElementById('dotsRow');r.innerHTML='';
+  for(let i=0;i<5;i++){const d=document.createElement('div');d.className='dot'+(i===0?' current':'');d.id='d'+i;r.appendChild(d);}
+}
+function renderQ(){
+  ANS=false;const q=QP[CI];
+  for(let i=0;i<5;i++){const d=document.getElementById('d'+i);d.className='dot';
+    if(i<CI)d.classList.add(RS[i]?'done-ok':'done-fail');else if(i===CI)d.classList.add('current');}
+  const p=document.getElementById('qtypePill');
+  if(q.t==='career'){p.className='q-type-pill career';p.textContent='🏛️ สาขาอาชีพ';}
+  else{p.className='q-type-pill emoji';p.textContent='🔍 ทายอาชีพจาก Emoji';}
+  const vis=document.getElementById('qVisual');
+  vis.textContent=q.v;vis.style.animation='none';void vis.offsetWidth;vis.style.animation='popBounce .5s cubic-bezier(.34,1.56,.64,1)';
+  document.getElementById('qText').textContent=q.q;
+  const st=document.getElementById('choicesStack');st.innerHTML='';
+  const correct=q.c.find(c=>c.ok);
+  const wrongs=q.c.filter(c=>!c.ok);
+  const wrong=wrongs[Math.floor(Math.random()*wrongs.length)];
+  const two=[correct,wrong].sort(()=>Math.random()-.5);
+  two.forEach(ch=>{
+    const b=document.createElement('button');b.className='choice';
+    b.innerHTML=`<span class="choice-ico">${ch.i}</span><span class="choice-label">${ch.l}</span><span class="choice-sub">${ch.s}</span>`;
+    b.onclick=()=>pick(b,ch,q);st.appendChild(b);
+  });
+}
+function pick(btn,ch,q){
+  if(ANS)return;ANS=true;
+  document.querySelectorAll('.choice').forEach(b=>{b.disabled=true;b.classList.add('dim');});
+  RS.push(ch.ok);
+  if(ch.ok){btn.classList.remove('dim');btn.classList.add('correct');showFB(true,q.e);}
+  else{
+    btn.classList.remove('dim');btn.classList.add('wrong');
+    document.querySelectorAll('.choice').forEach(b=>{
+      const lbl=b.querySelector('.choice-label').textContent;
+      if(q.c.find(c2=>c2.l===lbl&&c2.ok)){b.classList.remove('dim');b.classList.add('correct');}
+    });
+    showFB(false,q.e);
+  }
+  setTimeout(()=>{hideFB();CI++;if(CI>=5)showRes();else renderQ();},2500);
+}
+function showFB(ok,d){
+  const o=document.getElementById('fbOverlay');
+  document.getElementById('fbBig').textContent=ok?'✅':'❌';
+  document.getElementById('fbTitle').textContent=ok?'ถูกต้อง! 🎉':'เกือบแล้ว!';
+  document.getElementById('fbDetail').textContent=d;
+  o.className='feedback-overlay show '+(ok?'ok':'fail');
+}
+function hideFB(){document.getElementById('fbOverlay').className='feedback-overlay';}
+function showRes(){
+  const f=CF,sc=RS.filter(Boolean).length;
+  document.getElementById('resFacEmoji').textContent=f.emoji;
+  document.getElementById('resScore').textContent=sc;
+  const rd=document.getElementById('resDots');rd.innerHTML='';
+  RS.forEach(r=>{const sd=document.createElement('div');sd.className='sdot '+(r?'ok':'fail');sd.textContent=r?'✓':'✕';rd.appendChild(sd);});
+  let t,m;
+  if(sc===5){t='🏆 เก่งมากเลย!';m=`<strong>ยอดเยี่ยม!</strong> คุณรู้จักสาย<strong>${f.name}</strong>ลึกมาก พร้อมแล้วสำหรับโลกการทำงาน!`;}
+  else if(sc>=3){t='👏 ดีมาก!';m=`<strong>ไม่เลวเลย!</strong> รู้จักสาย<strong>${f.name}</strong>พอสมควร ลองหาข้อมูลเพิ่มดูนะ!`;}
+  else{t='🌱 เริ่มต้นดีแล้ว!';m=`ยังมีอะไรในสาย<strong>${f.name}</strong>ให้เรียนรู้อีกมาก ลองเล่นอีกรอบสิ!`;}
+  document.getElementById('resTitle').textContent=t;
+  document.getElementById('resMsg').innerHTML=m;
+  showS('screenResult');if(sc>=3)confetti();
+}
+function playAgainSameFac(){startFac(CF);}
+function goHome(){showS('screenHome');}
+function showS(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function confetti(){
+  const w=document.getElementById('confettiWrap');w.innerHTML='';
+  const C=['#E91E8C','#F4C430','#FF4DB8','#00E676','#fff','#7B1C3A'];
+  for(let i=0;i<80;i++){
+    const cp=document.createElement('div');cp.className='cp';
+    cp.style.left=Math.random()*100+'vw';cp.style.background=C[Math.floor(Math.random()*C.length)];
+    const sz=6+Math.random()*8;cp.style.width=sz+'px';cp.style.height=sz+'px';
+    cp.style.borderRadius=Math.random()>.5?'50%':'2px';
+    cp.style.animationDuration=(2+Math.random()*2)+'s';cp.style.animationDelay=(Math.random()*.8)+'s';
+    w.appendChild(cp);setTimeout(()=>cp.remove(),4000);
+  }
+}
+buildHome();
+</script>
+</body>
+</html>
