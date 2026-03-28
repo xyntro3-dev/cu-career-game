@@ -56,7 +56,8 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 .choice::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(233,30,140,0.15),transparent);opacity:0;transition:opacity 0.2s;}
 .choice:hover:not(:disabled)::after{opacity:1;}
 .choice:hover:not(:disabled){border-color:rgba(233,30,140,0.5);transform:translateY(-4px);box-shadow:0 10px 28px rgba(233,30,140,0.25);}
-.choice-ico{font-size:44px;display:block;margin-bottom:10px;}
+.choice-ab{font-family:'Prompt',sans-serif;font-size:15px;font-weight:900;color:#000;background:var(--gold);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;box-shadow:0 2px 8px rgba(244,196,48,0.5);}
+.choice-ico{font-size:44px;display:block;margin-bottom:8px;}
 .choice-label{font-family:'Prompt',sans-serif;font-size:17px;font-weight:700;color:var(--white);display:block;margin-bottom:3px;}
 .choice-sub{font-size:13px;color:var(--muted);display:block;}
 .choice.correct{background:rgba(0,230,118,0.13)!important;border-color:var(--success)!important;animation:correctPop 0.5s ease;}
@@ -394,9 +395,10 @@ function renderQ(){
   const wrongs=q.c.filter(c=>!c.ok);
   const wrong=wrongs[Math.floor(Math.random()*wrongs.length)];
   const two=[correct,wrong].sort(()=>Math.random()-.5);
-  two.forEach(ch=>{
+  two.forEach((ch,idx)=>{
+    const ab=['A','B'][idx];
     const b=document.createElement('button');b.className='choice';
-    b.innerHTML=`<span class="choice-ico">${ch.i}</span><span class="choice-label">${ch.l}</span><span class="choice-sub">${ch.s}</span>`;
+    b.innerHTML=`<span class="choice-ab">${ab}</span><span class="choice-ico">${ch.i}</span><span class="choice-label">${ch.l}</span><span class="choice-sub">${ch.s}</span>`;
     b.onclick=()=>pick(b,ch,q);st.appendChild(b);
   });
 }
